@@ -7,6 +7,6 @@ services:
     container_name: go-serveless
     volumes:
       - /Users/pedropinheiro/studies/serveless/aws-lambda-go:/usr/src/aws-lambda-go
-      - /go:/go
+      - /Users/pedropinheiro/go:/go
     ports:
       - "8080:8080"
