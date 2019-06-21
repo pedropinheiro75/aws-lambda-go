@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  go-serveless:
+    build:
+      context: ./docker
+    container_name: go-serveless
+    volumes:
+      - /Users/pedropinheiro/studies/serveless/aws-lambda-go:/usr/src/aws-lambda-go
+      - /Users/pedropinheiro/go:/go
+    ports:
+      - "8080:8080"
