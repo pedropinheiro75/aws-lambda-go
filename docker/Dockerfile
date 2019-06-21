@@ -6,6 +6,6 @@ RUN chmod +x /start.sh
 
 EXPOSE 8080
 
-WORKDIR /usr/src/go-lambda
+WORKDIR /usr/src/aws-lambda-go
 
 ENTRYPOINT [ "/start.sh" ]
