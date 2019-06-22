@@ -1,57 +1,58 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go/aws"
 	"net/http"
+	"os"
 )
 
 type Movie struct {
-	ID   int    `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-var movies = []Movie{
-	Movie{
-		ID:   1,
-		Name: "Avengers",
-	},
-	Movie{
-		ID:   2,
-		Name: "Ant-Man",
-	},
-	Movie{
-		ID:   3,
-		Name: "Thor",
-	},
-	Movie{
-		ID:   4,
-		Name: "Hulk",
-	},
-	Movie{
-		ID:   5,
-		Name: "Doctor Strange",
-	},
-}
-
-func insert(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func insert(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var movie Movie
-	if err := json.Unmarshal([]byte(req.Body), &movie); err != nil {
+	if err := json.Unmarshal([]byte(request.Body), &movie); err != nil {
 		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body: "Invalid payload",
+			StatusCode: http.StatusInternalServerError,
+			Body:       "Error while parsing the request body",
 		},
-		nil
+			nil
 	}
 
-	movies = append(movies, movie)
-
-	response, err := json.Marshal(movies)
+	cfg, err := external.LoadDefaultAWSConfig()
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body: err.Error(),
+			Body:       "Error while retrieving AWS credentials",
+		},
+			nil
+	}
+
+	svc := dynamodb.New(cfg)
+	req := svc.PutItemRequest(&dynamodb.PutItemInput{
+		TableName: aws.String(os.Getenv("TABLE_NAME")),
+		Item: map[string]dynamodb.AttributeValue{
+			"ID": dynamodb.AttributeValue{
+				S: aws.String(movie.ID),
+			},
+			"name": dynamodb.AttributeValue{
+				S: aws.String(movie.Name),
+			},
+		},
+	})
+
+	if _, err := req.Send(context.Background()); err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body: "Error while inserting movie to DynamoDB",
 		},
 		nil
 	}
@@ -61,7 +62,7 @@ func insert(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
-		Body: string(response),
+		Body: string("Created"),
 	},
 	nil
 }
