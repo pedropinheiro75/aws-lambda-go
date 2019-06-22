@@ -30,7 +30,7 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body: "Error while scaning DynamoDB",
+			Body: "Error while scanning DynamoDB",
 		},
 		nil
 	}
