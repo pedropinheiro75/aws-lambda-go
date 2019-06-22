@@ -13,8 +13,8 @@ import (
 )
 
 type Movie struct {
-	ID   `json:"id"`
-	Name `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func findAll() (events.APIGatewayProxyResponse, error) {
@@ -43,7 +43,7 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 	movies := make([]Movie, 0)
 	for _, item := range res.Items {
 		movies = append(movies, Movie{
-			ID: *item["ID"].S,
+			ID:   *item["ID"].S,
 			Name: *item["Name"].S,
 		})
 	}
