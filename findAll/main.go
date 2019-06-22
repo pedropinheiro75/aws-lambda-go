@@ -12,14 +12,19 @@ import (
 	"os"
 )
 
+type Movie struct {
+	ID   `json:"id"`
+	Name `json:"name"`
+}
+
 func findAll() (events.APIGatewayProxyResponse, error) {
 	cfg, err := external.LoadDefaultAWSConfig()
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body: "Error while retrieving AWS credentials",
+			Body:       "Error while retrieving AWS credentials",
 		},
-		nil
+			nil
 	}
 
 	svc := dynamodb.New(cfg)
@@ -30,18 +35,26 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body: "Error while scanning DynamoDB",
+			Body:       "Error while scanning DynamoDB",
 		},
-		nil
+			nil
 	}
 
-	response, err := json.Marshal(res.Items)
+	movies := make([]Movie, 0)
+	for _, item := range res.Items {
+		movies = append(movies, Movie{
+			ID: *item["ID"].S,
+			Name: *item["Name"].S,
+		})
+	}
+
+	response, err := json.Marshal(movies)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body: "Error while decoding to string value",
+			Body:       "Error while decoding to string value",
 		},
-		nil
+			nil
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -51,7 +64,7 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 		},
 		Body: string(response),
 	},
-	nil
+		nil
 }
 
 func main() {
