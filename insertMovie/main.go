@@ -19,10 +19,11 @@ type Movie struct {
 
 func insert(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var movie Movie
+
 	if err := json.Unmarshal([]byte(request.Body), &movie); err != nil {
 		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       "Error while parsing the request body",
+			StatusCode: http.StatusBadRequest,
+			Body:       "Invalid payload",
 		},
 			nil
 	}
@@ -49,12 +50,12 @@ func insert(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespon
 		},
 	})
 
-	if _, err := req.Send(context.Background()); err != nil {
+	if _, err = req.Send(context.Background()); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body: "Error while inserting movie to DynamoDB",
+			Body:       "Error while inserting movie to DynamoDB",
 		},
-		nil
+			nil
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -62,9 +63,8 @@ func insert(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespon
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
-		Body: string("Created"),
 	},
-	nil
+		nil
 }
 
 func main() {
