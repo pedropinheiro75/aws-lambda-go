@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"os"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"net/http"
-	"os"
 )
 
 type Movie struct {
@@ -60,7 +61,7 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Headers: map[string]string{
-			"Content-type": "application/json",
+			"Content-Type": "application/json",
 		},
 		Body: string(response),
 	},
