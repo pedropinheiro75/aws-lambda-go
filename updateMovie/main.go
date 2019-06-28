@@ -19,8 +19,8 @@ type Movie struct {
 }
 
 func updateMovie(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	pathParameter := request.PathParameters
-	fmt.Println("pathParameter: ", pathParameter)
+	movieID := request.PathParameters["id"]
+	fmt.Println("pathParameter: ", movieID)
 
 	var movie Movie
 	if err := json.Unmarshal([]byte(request.Body), &movie); err != nil {
@@ -46,14 +46,17 @@ func updateMovie(request events.APIGatewayProxyRequest) (events.APIGatewayProxyR
 		TableName: aws.String(os.Getenv("TABLE_NAME")),
 		Key: map[string]dynamodb.AttributeValue{
 			"ID": dynamodb.AttributeValue{
-				S: aws.String(pathParameter["movieID"]),
+				S: aws.String(movieID),
 			},
 		},
-		UpdateExpression: aws.String("set name = :n"),
+		UpdateExpression: aws.String("set #name = :n"),
 		ExpressionAttributeValues: map[string]dynamodb.AttributeValue{
 			":n": dynamodb.AttributeValue{
 				S: aws.String(movie.Name),
 			},
+		},
+		ExpressionAttributeNames: map[string]string{
+			"#name": "name",
 		},
 		ReturnValues: "UPDATED_NEW",
 	})
@@ -63,9 +66,9 @@ func updateMovie(request events.APIGatewayProxyRequest) (events.APIGatewayProxyR
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
-			Body: "Error while decoding to string value",
+			Body:       err.Error(),
 		},
-		nil
+			nil
 	}
 
 	response, err := json.Marshal(movie)
@@ -82,9 +85,9 @@ func updateMovie(request events.APIGatewayProxyRequest) (events.APIGatewayProxyR
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
-		Body:       string(response),
+		Body: string(response),
 	},
-	nil
+		nil
 }
 
 func main() {
